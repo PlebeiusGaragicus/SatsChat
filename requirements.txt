@@ -1,0 +1,29 @@
+python-dotenv
+redis
+qrcode
+
+streamlit
+streamlit-authenticator
+streamlit_mic_recorder
+streamlit-pills
+streamlit_modal
+# streamlit-javascript
+# streamlit-pydantic
+# streamlit-chat
+
+langchain
+langchain_core
+langgraph
+langchain_openai
+langchain_community
+
+gtts
+ollama
+openai
+google-generativeai
+assemblyai
+mistralai
+
+bolt11
+# bech32
+# bitstring
