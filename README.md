@@ -1,15 +1,6 @@
-<div align="center">
-<figure>
-    <img src="./assets/assistant2sm.png" alt="a friendly assistant" height="300px">
-</figure>
-</div>
+these are old instructions and will no longer work.
 
 ---
-
-
-# How to deploy this for yourself
-
-I recommend a dedicated Debian vitrual machine.
 
 ## `apt-update` and install prerequesties
 

@@ -5,8 +5,6 @@ from src.chat_history import (
     save_chat_history,
 )
 
-from src.flows import ChatMessage
-
 
 def column_fix():
     st.write("""<style>
