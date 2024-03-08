@@ -1,14 +1,14 @@
 import os
 
 from src.flows.echobots import echobot, dummybot
-# from src.flows.llm_openai import LLM_OPENAI_GPT
-# from src.flows.llm_gemini import LLM_GOOGLE_GEMINI
-# from src.flows.llm_mistral import LLM_MISTRAL
+from src.flows.llm_openai import LLM_OPENAI_GPT
+from src.flows.llm_gemini import LLM_GOOGLE_GEMINI
+from src.flows.llm_mistral import LLM_MISTRAL
 # from src.flows.llm_ollama import LLM_OLLAMA
 
 # from src.flows.chain_reflection import ChainReflectionBot
 
-ALL_CONSTRUCTS = [echobot, dummybot]
+ALL_CONSTRUCTS = [echobot, LLM_OPENAI_GPT, LLM_MISTRAL, LLM_GOOGLE_GEMINI]
 
 # if os.getenv("DEBUG", False):
     # ALL_CONSTRUCTS = [echobot, LLM_GOOGLE_GEMINI, LLM_OPENAI_GPT, LLM_MISTRAL, LLM_OLLAMA, ChainReflectionBot]

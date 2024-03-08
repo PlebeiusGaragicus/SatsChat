@@ -78,9 +78,13 @@ def show_new_user():
 def show_nuke_button():
     # pass
     # nuke = st.sidebar.button("Nuke")
+    st.write("This will delete all saved cookies for this website.")
+    st.write(":red[This cannot be undone!]")
+    st.write("Any balance you have :red[will be lost] - consider it a donation.")
 
     # if st.sidebar.button(":red[Delete all data]"):
-    if st.sidebar.button(f":red[NUKE DATA 🔥]"):
+    # if st.sidebar.button(f":red[NUKE DATA 🔥]"):
+    if st.button(f":red[NUKE DATA 🔥]"):
         # duke_nuke_em()
         # st.session_state.cookie_manager.clear()
         # st.session_state.cookie_manager.clear()
@@ -89,10 +93,17 @@ def show_nuke_button():
 
         st.session_state.cookie_manager.save()
 
-        for k in st.session_state:
-            print(k)
-            del st.session_state[k]
+        # for k in st.session_state:
+        #     print(k)
+        #     del st.session_state[k]
 
-        # st.rerun()
-        st.stop()
+        # TODO - remove balance inside of redis, and alert me as to the balance of "donated" sats
 
+        del st.session_state["user_uuid"]
+        del st.session_state["appstate"] # TODO - we force a reload inside of init_if_needed() - but I should adjust this
+        # del st.session_state["sats"]
+        # del st.session_state["cookie_manager"]
+
+        st.rerun()
+        # st.toast("All data has been nuked - refresh the page", icon="🔥")
+        # st.stop()

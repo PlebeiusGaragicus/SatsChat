@@ -1,3 +1,4 @@
+import os
 import json
 
 from pydantic import BaseModel
@@ -5,8 +6,9 @@ from pydantic import BaseModel
 import streamlit as st
 
 from src.flows import StreamingLLM
-from src.persist import PREFERENCES_PATH
-from src.common import get
+from src.common import get, set
+from src.cookies import set_cookie, get_cookie
+
 
 
 # https://aistudio.google.com/app/prompts/new_chat
@@ -36,12 +38,11 @@ GEMINI_MODELS = [
 class LLM_SETTINGS_GOOGLE_GEMINI(BaseModel):
     model: str = GEMINI_MODELS[0]
     # temperature: float = 0.7
-    api_key: str = ""
 
 
 class LLM_GOOGLE_GEMINI(StreamingLLM):
     emoji = "🔮"
-    name = "Google Gemini"
+    name = "Gemini"
     avatar_filename = "gemini0.png"
     preamble = "Closed source and ready to take your money!"
 
@@ -55,11 +56,8 @@ class LLM_GOOGLE_GEMINI(StreamingLLM):
 
         # load settings from file
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "r") as f:
-                settings = json.loads(f.read())
-                self.settings = LLM_SETTINGS_GOOGLE_GEMINI(**settings)
-        except (FileNotFoundError, json.JSONDecodeError):
+            self.settings = LLM_SETTINGS_GOOGLE_GEMINI(**json.loads(get_cookie(f'{self.name}_settings')))
+        except:
             self.settings = LLM_SETTINGS_GOOGLE_GEMINI()
 
 
@@ -99,7 +97,8 @@ class LLM_GOOGLE_GEMINI(StreamingLLM):
 
         import google.generativeai as genai
 
-        genai.configure(api_key=self.settings.api_key)
+        # genai.configure(api_key=self.settings.api_key)
+        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
         model = genai.GenerativeModel(model_name=self.settings.model,
                                     generation_config=self.generation_config,
@@ -127,27 +126,19 @@ class LLM_GOOGLE_GEMINI(StreamingLLM):
 
     
     def display_settings(self):
-        def save_settings():
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "w") as f:
-                f.write(json.dumps(self.settings.model_dump()))
-
-
         def update(key):
             new_value = st.session_state[key]
             self.settings.__dict__[key] = new_value
 
-            save_settings()
+            set(f'{self.name}_settings', self.settings.model_dump())
+            set_cookie(f'{self.name}_settings', json.dumps(self.settings.model_dump()))
 
         try:
             st.selectbox("Model", options=GEMINI_MODELS, key="model", index=GEMINI_MODELS.index(self.settings.model), on_change=update, args=("model",))
             # st.slider("Temperature", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
 
-            if get("username") == "satoshi": # TODO - don't hardcode... also, this is just a temp workaround
-                with st.expander(":blue[API KEYS]", expanded=False):
-                    st.text_input(":blue[GEMINI_API_KEY]", key="api_key", value=self.settings.api_key, on_change=update, args=("api_key",))
-        except ValueError:
+        except:
             self.settings = LLM_SETTINGS_GOOGLE_GEMINI()
-            save_settings() # might this cause endless recursion?
-            self.display_settings()
-
+            set(f'{self.name}_settings', self.settings.model_dump())
+            set_cookie(f'{self.name}_settings', json.dumps(self.settings.model_dump()))
+            # self.display_settings()

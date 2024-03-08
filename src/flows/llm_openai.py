@@ -1,3 +1,4 @@
+import os
 import json
 
 from pydantic import BaseModel
@@ -5,8 +6,9 @@ from pydantic import BaseModel
 import streamlit as st
 
 from src.flows import StreamingLLM
-# from src.persist import PREFERENCES_PATH
-from src.common import get
+from src.common import get, set
+from src.cookies import set_cookie, get_cookie
+
 
 
 # https://platform.openai.com/docs/models/gpt-3-5-turbo
@@ -36,7 +38,6 @@ OPENAI_MODELS = [
 class LLM_SETTINGS_OPENAI_GPT(BaseModel):
     model: str = OPENAI_MODELS[0]
     # temperature: float = 0.7
-    api_key: str = ""
 
 
 class LLM_OPENAI_GPT(StreamingLLM):
@@ -57,11 +58,8 @@ class LLM_OPENAI_GPT(StreamingLLM):
 
         # load settings from file
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "r") as f:
-                settings = json.loads(f.read())
-                self.settings = LLM_SETTINGS_OPENAI_GPT(**settings)
-        except (FileNotFoundError, json.JSONDecodeError):
+            self.settings = LLM_SETTINGS_OPENAI_GPT(**json.loads(get_cookie(f'{self.name}_settings')))
+        except:
             self.settings = LLM_SETTINGS_OPENAI_GPT()
 
 
@@ -72,7 +70,8 @@ class LLM_OPENAI_GPT(StreamingLLM):
 
         import openai
         # from openai import OpenAI
-        client = openai.OpenAI(api_key=self.settings.api_key)
+        # client = openai.OpenAI(api_key=self.settings.api_key)
+        client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
         try:
             generator = client.chat.completions.create(
@@ -84,10 +83,10 @@ class LLM_OPENAI_GPT(StreamingLLM):
         # except E
         except openai._exceptions.APIConnectionError:
             # yield "Connection failed - double check your API key?"
-            yield "🥺 Oops... my connection failed.  Ensure I have my API key and try again?"
+            yield "🥺 Oops... my connection failed."
             return
         except openai._exceptions.AuthenticationError:
-            yield "🔑 Invalid API key.  Please check your settings."
+            yield "🔑 Invalid API key."
             return
 
         for chunk in generator:
@@ -98,26 +97,20 @@ class LLM_OPENAI_GPT(StreamingLLM):
 
     
     def display_settings(self):
-        def save_settings():
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "w") as f:
-                f.write(json.dumps(self.settings.model_dump()))
-
-
         def update(key):
             new_value = st.session_state[key]
             self.settings.__dict__[key] = new_value
 
-            save_settings()
+            set(f'{self.name}_settings', self.settings.model_dump())
+            set_cookie(f'{self.name}_settings', json.dumps(self.settings.model_dump()))
 
         try:
             st.selectbox("Model", options=OPENAI_MODELS, key="model", index=OPENAI_MODELS.index(self.settings.model), on_change=update, args=("model",))
             # st.slider("Temperature", min_value=0.0, max_value=1.0, key="temperature", value=self.settings.temperature, on_change=update, args=("temperature",))
 
-            if get("username") == "satoshi": # TODO - don't hardcode... also, this is just a temp workaround
-                with st.expander(":blue[API KEYS]", expanded=False):
-                    st.text_input(":blue[OPENAI_API_KEY]", key="api_key", value=self.settings.api_key, on_change=update, args=("api_key",))
-        except ValueError:
+        except Exception as e:
+            st.exception(e)
             self.settings = LLM_SETTINGS_OPENAI_GPT()
-            save_settings() # might this cause endless recursion?
-            self.display_settings()
+            set(f'{self.name}_settings', self.settings.model_dump())
+            set_cookie(f'{self.name}_settings', json.dumps(self.settings.model_dump()))
+            # self.display_settings()

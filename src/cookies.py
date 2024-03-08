@@ -36,9 +36,9 @@ def save_cookies_if_needed():
 # TODO - hmmm... not sure I need this as it's protected by the `not_init` check
 # @st.cache_resource(experimental_allow_widgets=True)
 def get_cookie_manager():
-    with st.sidebar.expander("Cookies", expanded=False):
+    # with st.sidebar.expander("Delete broswer data", expanded=False):
         # st.write("Cookie Manager")
-        return CookieManager()
+    return CookieManager()
 
 
 def load_cookies():
@@ -46,6 +46,7 @@ def load_cookies():
         st.session_state.cookie_manager = get_cookie_manager()
 
         if not st.session_state.cookie_manager.ready():
+            cprint("Cookies not loaded - stopping", Colors.RED)
             st.stop()
 
 

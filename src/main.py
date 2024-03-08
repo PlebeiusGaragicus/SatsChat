@@ -170,7 +170,23 @@ def main():
         initial_sidebar_state="auto",
     )
 
-    load_cookies()
+    construct_settings_placeholder = st.sidebar.empty()
+    convo_history_placeholder = st.sidebar.empty()
+    add_sats_placeholder = st.sidebar.empty()
+    # version_placeholder = st.sidebar.empty()
+
+    if is_init("user_uuid"):
+        expander_name = ":red[Delete data]"
+    else:
+        expander_name = '.'
+
+    with st.sidebar.expander(expander_name, expanded=False):
+        load_cookies()
+
+        if is_init("user_uuid"):
+            show_nuke_button()
+
+
     ensure_uuid()  ## <--- execution stops here for new users
     init_if_needed()
 
@@ -217,34 +233,31 @@ def main():
 
     cols2 = st.columns((3, 1))
 
-    with cols2[1]:
-        show_tokens()
+    show_tokens()
 
 
     ### info card
-    with cols2[0]:
-        with st.popover("AI info", use_container_width=True):
-    # with st.expander("Information about this AI workflow", expanded=False):
-            get('construct').display_model_card()
+    # with cols2[1]:
+
+    # with st.popover("AI info card", use_container_width=True):
+    # with st.popover("AI info card", use_container_width=False):
+    # # with st.expander("Information about this AI workflow", expanded=False):
+    #         get('construct').display_model_card()
 
     st.header("", divider="rainbow")
 
 
 
-    if os.getenv("DEBUG", False):
-        with st.popover( "Debug"):
-        # with st.expander(":red[Debug] ❤️‍🩹", expanded=False):
-            debug_placeholder = st.container()
-            debug_placeholder.write(get("construct"))
-            debug_placeholder.write(st.session_state.appstate.chat.messages)
-    
-    # with st.popover( "Open popover"):
-    #     st.markdown("Hello World 👋")
-    #     st.text_input("Whats your name?")
+    # if os.getenv("DEBUG", False):
+    #     with st.popover( "Debug"):
+    #     # with st.expander(":red[Debug] ❤️‍🩹", expanded=False):
+    #         debug_placeholder = st.container()
+    #         debug_placeholder.write(get("construct"))
+    #         debug_placeholder.write(st.session_state.appstate.chat.messages)
+
+
+
     ####### CONVERSATION #######
-
-
-
     # TODO - turn this into a settings
     if os.getenv("DEBUG", False):
         human_avatar = f"{AVATAR_PATH}/user69.png"
@@ -280,7 +293,7 @@ def main():
 
 
     ################### TOP OF SIDEBAR ###################
-    construct_settings_placeholder = st.sidebar.empty()
+    # construct_settings_placeholder = st.sidebar.empty()
 
 
     #### USER PROMPT AND ASSOCIATED LOGIC
@@ -293,7 +306,7 @@ def main():
 
     sats = load_sats_balance()
     if sats <= 0:
-        st.error("You are out of tokens! Please add more to continue.")
+        st.error("You are out of generation tokens - please add more to continue.")
         prompt = None
     else:
         prompt = st.chat_input("Ask a question.")
@@ -335,34 +348,38 @@ def main():
 
 
 
-    appstate.load_chat_history()
+    # appstate.load_chat_history()
     
 
-    with st.sidebar:
+    ### TODO CONVERSATION HISTORY IS TURNED OFF FOR NOW
+    with convo_history_placeholder.container():
+        pass
+    #     st.header("", divider="rainbow")
+    #     # st.write("## :rainbow[Past Conversations]")
+    #     st.write("## :orange[Past Conversations]")
+
+    #     if len(appstate.chat.messages) > 0:
+    #         sidebar_new_button_placeholder = st.columns((1, 1))
+    #         sidebar_new_button_placeholder[0].button("🗑️ :red[Delete]", on_click=delete_this_chat, key="delbutton2", use_container_width=True)
+    #         sidebar_new_button_placeholder[1].button("🌱 :green[New]", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
+    #         center_text('p', "---", size=9)
+
+    #     if len(appstate.chat_history) == 0:
+    #         st.caption("No past conversations... yet")
+    #     for description, runlog in appstate.chat_history:
+    #         st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
+    #     # if appstate.truncated:
+    #     #     st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
+    #     #     st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
+
+    with add_sats_placeholder:
         st.header("", divider="rainbow")
-        # st.write("## :rainbow[Past Conversations]")
-        st.write("## :orange[Past Conversations]")
-
-        if len(appstate.chat.messages) > 0:
-            sidebar_new_button_placeholder = st.columns((1, 1))
-            sidebar_new_button_placeholder[0].button("🗑️ :red[Delete]", on_click=delete_this_chat, key="delbutton2", use_container_width=True)
-            sidebar_new_button_placeholder[1].button("🌱 :green[New]", on_click=lambda: appstate.new_thread(), use_container_width=True, key="newbutton2")
-            center_text('p', "---", size=9)
-
-        if len(appstate.chat_history) == 0:
-            st.caption("No past conversations... yet")
-        for description, runlog in appstate.chat_history:
-            st.button(f"{description}", on_click=load_convo, args=(runlog,), use_container_width=True, key=runlog.split('.')[0])
-        # if appstate.truncated:
-        #     st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
-        #     st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
-
-        st.header("", divider="rainbow")
-
         display_invoice_pane()
 
 
 
+    # with version_placeholder:
+    with st.sidebar:
         caption = f"Version :green[{VERSION}] | "
         if os.getenv("DEBUG", False):
             caption += ":orange[DEBUG] | "
@@ -377,7 +394,7 @@ def main():
         st.write("## :orange[Configuration]")
         get('construct').display_settings()
 
-        show_nuke_button()
+        # show_nuke_button()
     
 
     save_cookies_if_needed()
