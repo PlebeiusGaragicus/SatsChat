@@ -1,4 +1,5 @@
 import time
+import uuid
 import json
 
 from pydantic import BaseModel
@@ -7,7 +8,9 @@ import streamlit as st
 
 from src.flows import StreamingLLM
 
-from src.common import get
+from src.common import get, set
+
+from src.cookies import set_cookie, get_cookie
 
 
 
@@ -63,7 +66,7 @@ class echobot(testing_echobot):
         
         # try to load settings from saved cookie
         try:
-            self.settings = echobot_settings(**get('echobot_settings'))
+            self.settings = echobot_settings(**json.loads(get_cookie('echobot_settings')))
         except:
             self.settings = echobot_settings()
 
@@ -86,7 +89,8 @@ class echobot(testing_echobot):
             #     f.write(json.dumps(self.settings.model_dump()))
             # save to cookie
             set('echobot_settings', self.settings.model_dump())
-            st.session_state.cookie_manager.save()
+            set_cookie('echobot_settings', json.dumps(self.settings.model_dump()))
+            # st.session_state.cookie_manager.save()# (key=str(uuid.uuid4()))
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
@@ -123,7 +127,7 @@ class dummybot(testing_echobot):
         #     self.settings = echobot_settings()
 
         try:
-            self.settings = echobot_settings(**get('dummybot_settings'))
+            self.settings = echobot_settings(**json.loads(get_cookie('dummybot_settings')))
         except:
             self.settings = echobot_settings()
 
@@ -145,7 +149,8 @@ class dummybot(testing_echobot):
             #     f.write(json.dumps(self.settings.model_dump()))
             # save to cookie
             set('dummybot_settings', self.settings.model_dump())
-            st.session_state.cookie_manager.save()
+            set_cookie('dummybot_settings', json.dumps(self.settings.model_dump()))
+            # st.session_state.cookie_manager.save()# (key=str(uuid.uuid4()))
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))

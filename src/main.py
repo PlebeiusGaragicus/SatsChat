@@ -45,7 +45,8 @@ from src.cookies import (
     load_cookies,
     duke_nuke_em,
     get_cookie_manager,
-    set_cookie
+    set_cookie,
+    save_cookies_if_needed
 )
 
 
@@ -96,9 +97,14 @@ def init_if_needed():
     # not sure if this should be here or in main...
     # st.session_state.sats = load_sats_balance()
 
+    if not_init('save_cookies'):
+        st.session_state.save_cookies = False
 
+    # wait... we do this EVERY TIME?!?!?
     # TODO use @st.cache_resource
-    st.session_state.redis_conn = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+    if not_init('redis_conn'):
+        cprint("making a redis connection...", Colors.YELLOW)
+        st.session_state.redis_conn = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
     user_sats = st.session_state.redis_conn.get(get("user_uuid"))
 
@@ -169,7 +175,6 @@ def main():
     init_if_needed()
 
     load_ui_persistance()
-    # show_nuke_button()
 
     ## SHOW COOKIES
     # with st.container(border=True):
@@ -196,7 +201,8 @@ def main():
     # if we play around in debug and switch to production, we need to make sure we don't go out of bounds
     if pill_index >= len(construct_names):
         pill_index = 0
-    construct = pills(label="Choose an AI workflow:",
+    # construct = pills(label="Choose an AI workflow:",
+    construct = pills(label="",
                     options=construct_names,
                     icons=construct_icons,
                     index=pill_index
@@ -209,25 +215,32 @@ def main():
         st.exception(e)
         # st.stop()
 
-    cols2 = st.columns((1, 1, 1))
+    cols2 = st.columns((3, 1))
 
-    with cols2[2]:
+    with cols2[1]:
         show_tokens()
 
 
     ### info card
-    with st.expander("Information about this AI workflow", expanded=False):
-        get('construct').display_model_card()
+    with cols2[0]:
+        with st.popover("AI info", use_container_width=True):
+    # with st.expander("Information about this AI workflow", expanded=False):
+            get('construct').display_model_card()
 
     st.header("", divider="rainbow")
 
 
 
     if os.getenv("DEBUG", False):
-        with st.expander(":red[Debug] ❤️‍🩹", expanded=False):
+        with st.popover( "Debug"):
+        # with st.expander(":red[Debug] ❤️‍🩹", expanded=False):
             debug_placeholder = st.container()
             debug_placeholder.write(get("construct"))
             debug_placeholder.write(st.session_state.appstate.chat.messages)
+    
+    # with st.popover( "Open popover"):
+    #     st.markdown("Hello World 👋")
+    #     st.text_input("Whats your name?")
     ####### CONVERSATION #######
 
 
@@ -348,7 +361,6 @@ def main():
 
         display_invoice_pane()
 
-        show_nuke_button()
 
 
         caption = f"Version :green[{VERSION}] | "
@@ -365,7 +377,13 @@ def main():
         st.write("## :orange[Configuration]")
         get('construct').display_settings()
 
+        show_nuke_button()
+    
 
+    save_cookies_if_needed()
+
+    # the end
+##############################################################################
 
 
 
@@ -376,7 +394,7 @@ def interrupt():
     st.session_state.appstate.chat.messages.append(ChatMessage(role="assistant", content=st.session_state.incomplete_stream))
     st.session_state.appstate.chat.messages.append(ChatMessage(role="user", content="<INTERRUPTS>"))
 
-    st.session_state.redis_conn.decrby(st.session_state.username, st.session_state.token_cost_accumulator)
+    st.session_state.redis_conn.decrby(get('user_uuid'), st.session_state.token_cost_accumulator)
     st.session_state.token_cost_accumulator = 0
 
     if save_chat_history():

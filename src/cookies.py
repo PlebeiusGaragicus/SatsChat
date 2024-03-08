@@ -22,14 +22,23 @@ def get_cookie(c):
 
 def set_cookie(c, v):
     st.session_state.cookie_manager[c] = v
-    st.session_state.cookie_manager.save()
+    st.session_state.save_cookies = True
+    # st.session_state.cookie_manager.save()
     # TODO cprint debug here
+
+
+def save_cookies_if_needed():
+    if st.session_state.save_cookies:
+        st.session_state.cookie_manager.save()
+        st.session_state.save_cookies = False
 
 
 # TODO - hmmm... not sure I need this as it's protected by the `not_init` check
 # @st.cache_resource(experimental_allow_widgets=True)
 def get_cookie_manager():
-    return CookieManager()
+    with st.sidebar.expander("Cookies", expanded=False):
+        # st.write("Cookie Manager")
+        return CookieManager()
 
 
 def load_cookies():

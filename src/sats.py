@@ -10,6 +10,8 @@ import streamlit as st
 
 from src.common import set, get, not_init, INVOICES_PATH
 
+from src.cookies import load_cookies, get_cookie, set_cookie
+
 TOKENS_PER_SAT = 30
 
 # https://guides.getalby.com/developer-guide/v/alby-wallet-api/lightning-address-details-proxy
@@ -39,7 +41,7 @@ def charge_user(amount: int = None):
     if amount is None:
         amount = st.session_state.token_cost_accumulator
 
-    sats_left = st.session_state.redis_conn.decrby(get('username'), amount)
+    sats_left = st.session_state.redis_conn.decrby(get('user_uuid'), amount)
     st.session_state.token_cost_accumulator = 0
     return sats_left
 
@@ -96,32 +98,44 @@ def create_invoice_file(sats: int = 100):
         st.toast(f"Failed to create invoice: {response.status_code} {response.text}")
         raise Exception(f"Failed to create invoice: {response.status_code} {response.text}")
 
-    invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
-    with open(invoice_filename, "w") as f:
-        f.write(json.dumps(response.json()))
+    # invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
+    # with open(invoice_filename, "w") as f:
+    #     f.write(json.dumps(response.json()))
+    # set_cookie("invoice", json.dumps(response.json())
+    set_cookie("invoice", json.dumps(response.json()['invoice']))
 
     st.session_state.invoice = response.json()['invoice']
 
 
 
 def return_stored_invoice():
-    invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
+    # invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
 
+    # try:
+    #     with open(invoice_filename, "r") as f:
+    #         invoice = json.load(f)['invoice']
+    #         # print("INVOICE FILE FOUND:")
+    #         # print(invoice)
+    #         # return invoice
+
+    # except FileNotFoundError:
+    #     return None
+
+    # except json.JSONDecodeError:
+    #     st.error("INVALID INVOICE FILE")
+    #     # TODO - should probably delete the file..
+    #     # ALSO... LOG THE ERROR AND SEND IT TO ME!!! look at that one mCoding youtube video
+    #     return None
+
+    # use a cookie instead
     try:
-        with open(invoice_filename, "r") as f:
-            invoice = json.load(f)['invoice']
-            # print("INVOICE FILE FOUND:")
-            # print(invoice)
-            # return invoice
+        invoice = json.loads(get_cookie("invoice"))
 
-    except FileNotFoundError:
+        if invoice is None: # TODO don't need this... will throw an exception
+            return None
+    except TypeError:
         return None
 
-    except json.JSONDecodeError:
-        st.error("INVALID INVOICE FILE")
-        # TODO - should probably delete the file..
-        # ALSO... LOG THE ERROR AND SEND IT TO ME!!! look at that one mCoding youtube video
-        return None
 
     pr = invoice['pr']
     invoice_date = bolt11.decode(pr).date
@@ -191,16 +205,20 @@ def display_invoice_pane():
 
 
 def archive_invoice():
-    """ rename {username}.invoice to {username}.invoice.archive.{last6} """
+    del st.session_state.cookie_manager["invoice"]
+    st.session_state.cookie_manager.save()
 
-    payment_request = get('invoice')['pr']
-    last6 = payment_request[-6:] # last 6 characters of payment_request
-    new_filename = f"{INVOICES_PATH}/{get('username')}.invoice.archive.{last6}"
 
-    invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
-    os.rename(invoice_filename, new_filename)
+    # """ rename {username}.invoice to {username}.invoice.archive.{last6} """
 
-    del st.session_state.invoice
+    # payment_request = get('invoice')['pr']
+    # last6 = payment_request[-6:] # last 6 characters of payment_request
+    # new_filename = f"{INVOICES_PATH}/{get('username')}.invoice.archive.{last6}"
+
+    # invoice_filename = f"{INVOICES_PATH}/{get('username')}.invoice"
+    # os.rename(invoice_filename, new_filename)
+
+    # del st.session_state.invoice
 
     time.sleep(3) # allow toast to display before rerunning
     st.rerun()
@@ -226,7 +244,7 @@ def check_for_payment():
             st.success("Invoice has been paid! 🎉")
 
             # TODO I don't want to hardcode numbers here, but there's no amount in the invoice that I can see!
-            st.session_state.redis_conn.incrby(get('username'), 100 * TOKENS_PER_SAT)
+            st.session_state.redis_conn.incrby(get('user_uuid'), 100 * TOKENS_PER_SAT)
             return True
         else:
             return False
@@ -244,37 +262,38 @@ def check_for_payment():
 
 
 def generate_qr():
+    return
     # look for QR code file
-    qr_filename = f"{INVOICES_PATH}/{get('username')}.qr.png"
-    pr = get('invoice')['pr']
+    # qr_filename = f"{INVOICES_PATH}/{get('username')}.qr.png"
+    # pr = get('invoice')['pr']
 
-    if not os.path.exists(qr_filename):
-        # Prefix the invoice with "lightning:" to make it compatible with wallet apps
-        invoice_for_qr = f"lightning:{pr}"
+    # if not os.path.exists(qr_filename):
+    #     # Prefix the invoice with "lightning:" to make it compatible with wallet apps
+    #     invoice_for_qr = f"lightning:{pr}"
 
-        # Generate the QR code
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
+    #     # Generate the QR code
+    #     qr = qrcode.QRCode(
+    #         version=1,
+    #         error_correction=qrcode.constants.ERROR_CORRECT_L,
+    #         box_size=10,
+    #         border=4,
+    #     )
 
-        qr.add_data(invoice_for_qr)
-        qr.make(fit=True)
+    #     qr.add_data(invoice_for_qr)
+    #     qr.make(fit=True)
 
-        # Create an Image object from the QR Code instance
-        img = qr.make_image(fill_color="black", back_color="white")
+    #     # Create an Image object from the QR Code instance
+    #     img = qr.make_image(fill_color="black", back_color="white")
 
-        # Save the QR code to a file inside the invoices folder
-        img.save(qr_filename)
+    #     # Save the QR code to a file inside the invoices folder
+    #     img.save(qr_filename)
 
-    # caption = f"Invoice: {pr[0:8]}...{pr[-8:]}"
-    # st.image(qr_filename, caption=caption, use_column_width=True)
-    st.image(qr_filename, use_column_width=True)
+    # # caption = f"Invoice: {pr[0:8]}...{pr[-8:]}"
+    # # st.image(qr_filename, caption=caption, use_column_width=True)
+    # st.image(qr_filename, use_column_width=True)
 
-    caption = f":orange[{pr[0:14]} ... {pr[-14:]}]"
-    st.write(caption)
+    # caption = f":orange[{pr[0:14]} ... {pr[-14:]}]"
+    # st.write(caption)
 
 
 

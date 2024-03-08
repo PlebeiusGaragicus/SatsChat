@@ -68,7 +68,7 @@ def show_new_user():
 
         if I_accept:
             st.session_state.cookie_manager["user_uuid"] = str(uuid.uuid4())
-            st.session_state.cookie_manager.save()
+            st.session_state.cookie_manager.save()# (key=str(uuid.uuid4()))
             st.write("UUID set, please refresh the page")
             st.rerun()
 
@@ -82,7 +82,17 @@ def show_nuke_button():
     # if st.sidebar.button(":red[Delete all data]"):
     if st.sidebar.button(f":red[NUKE DATA 🔥]"):
         # duke_nuke_em()
-        st.session_state.cookie_manager.clear()
+        # st.session_state.cookie_manager.clear()
+        # st.session_state.cookie_manager.clear()
+        for c in st.session_state.cookie_manager:
+            del st.session_state.cookie_manager[c]
+
         st.session_state.cookie_manager.save()
-        st.rerun()
+
+        for k in st.session_state:
+            print(k)
+            del st.session_state[k]
+
+        # st.rerun()
+        st.stop()
 
