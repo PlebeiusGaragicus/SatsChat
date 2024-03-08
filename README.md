@@ -5,8 +5,8 @@ these are old instructions and will no longer work.
 ## `apt-update` and install prerequesties
 
 ```sh
-apt-update
-apt-upgrade -y
+apt-get update
+apt-get upgrade -y
 
 apt-get install -y git curl python3-venv python3-pip redis-server pkg-config
 
@@ -29,7 +29,16 @@ systemctl enable redis-server
 
 ```
 
+## install cloudflared
+```sh
+# ensure you choose the debian install commands
+```
 
+
+## change root PS1 to show completion...
+```sh
+echo 'export PS1="\n\[\e[1;35m\]<\[\e[1;31m\]\u\[\e[1;35m\]> \[\e[1;34m\]\h\[\e[1;35m\] [\w] \[\e[1;36m\]\$ \[\e[0m\]\n"' >> ~/.bashrc
+```
 
 
 
@@ -52,8 +61,8 @@ echo 'export PS1="\n\[\e[1;35m\](\[\e[1;31m\]\u\[\e[1;35m\]@\[\e[1;34m\]\h\[\e[1
 ## clone the repo
 
 ```sh
-git clone https://github.com/PlebeiusGaragicus/PlebChat.git
-cd PlebChat
+git clone https://github.com/PlebeiusGaragicus/satschat.git
+cd satschat
 ```
 
 ## configure the Python virtual environment
@@ -65,63 +74,13 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-## create user accounts for the application
-
-```sh
-cat << EOF > auth.yaml
-credentials:
-  usernames:
-    root:
-      email: root@plebby.me
-      name: root
-      password: 
-    satoshi:
-      email: satoshi@plebby.me
-      name: satoshi
-      password: 
-cookie:
-  expiry_days: 7
-  key: plebchat_auth_widget_key
-  name: plebchat_auth
-preauthorized:
-  emails:
-    - root@plebby.me
-EOF
-
-nano auth.yaml
-```
-
->> the above command isn't properly escaped... so here are some stupid default TESTING ONLY hashed passwords to use
-
-```sh
-# toor
-$2b$12$M6w0b2cIDfKU5YA8o4AlQOrMs2npZZOoGUBTDKpTwVYFNbj8ztsDK
-# go
-$2b$12$V9LB8zbysAe/CfHWQlgYs.WXfGIp4MWSzQSYRaUBpoV0Q/VwHeGzC
-```
-
-**Note:** A default `root` user is created with a password of `toor`.  Log in to root and (1) change this default password as well as (2) create additional users.  If you create a `demo` user account then API keys will not be able to be edited or viewed and you can safety allow others to user your app.  Editing of these API keys by root is not yet enabled.  soon...
-
-The passwords are actually "salted" hashes.  Do not put the actual password in the .yaml file.
-
-To save an exit - use Ctrl-X, accept changes with 'y' and press 'Enter'
-
-*How do I generated the salted password hash?*
-
-Good question - run a Python REPL session and enter this code:
-
-```python
-import streamlit_authenticator as stauth
-print(stauth.Hasher([input("Enter password: ")]).generate()[0])
-```
-
 ## create the `.env` file with API keys
 
 ```sh
 cat << EOF > .env
-TAVILY_API_KEY=
-LANGCHAIN_API_KEY=
 OPENAI_API_KEY=
+GEMINI_API_KEY=
+MISTRAL_API_KEY=
 EOF
 
 nano .env
@@ -135,15 +94,15 @@ Note: This will need `root` access.  Log in as `root` for these next steps.
 
 
 ```sh
-cat << EOF > /etc/systemd/system/plebchat.service
+cat << EOF > /etc/systemd/system/satschat.service
 [Unit]
-Description=PlebChat Service
+Description=SatsChat Service
 After=network.target
 
 [Service]
 User=satoshi
-WorkingDirectory=/home/satoshi/PlebChat
-ExecStart=/bin/bash -c "/home/satoshi/PlebChat/production"
+WorkingDirectory=/home/satoshi/satschat
+ExecStart=/bin/bash -c "/home/satoshi/satschat/production"
 Restart=on-failure
 RestartSec=5s
 
@@ -151,7 +110,7 @@ RestartSec=5s
 WantedBy=multi-user.target
 EOF
 
-nano /etc/systemd/system/plebchat.service
+nano /etc/systemd/system/satschat.service
 ```
 
 Also, replace `satoshi` with the non-root Linux username that you created earlier.
@@ -159,14 +118,14 @@ Also, replace `satoshi` with the non-root Linux username that you created earlie
 ## start the service and monitor for errors
 
 ```sh
-systemctl start plebchat
-systemctl status plebchat
+systemctl start satschat
+systemctl status satschat
 
 # works..?  If so:
-systemctl enable plebchat
+systemctl enable satschat
 
 # watch it run via:
-journalctl -u plebchat -f # hitting 'q' will exit
+journalctl -u satschat -f # hitting 'q' will exit
 ```
 
 ## Visit the application

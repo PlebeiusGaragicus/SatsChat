@@ -4,6 +4,7 @@ qrcode
 
 streamlit
 streamlit-pills
+streamlit_cookies_manager
 
 langchain
 langchain_core
