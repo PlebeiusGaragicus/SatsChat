@@ -14,6 +14,20 @@ from langchain_core.messages.ai import AIMessage
 from langchain_core.messages.function import FunctionMessage
 
 
+
+
+# https://docs.streamlit.io/library/advanced-features/connecting-to-data
+# https://github.com/lightninglabs/LangChainBitcoin
+# https://reflex.dev/
+# https://github.com/streamlit/streamlit/issues/861
+# https://python.langchain.com/docs/integrations/callbacks/streamlit
+# https://python.langchain.com/docs/modules/callbacks/custom_callbacks
+
+
+
+
+
+
 from src.flows import ChatThread
 
 from src.flows.constructs import ALL_CONSTRUCTS

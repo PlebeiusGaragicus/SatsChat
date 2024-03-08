@@ -4,6 +4,11 @@ import uuid
 import streamlit as st
 from streamlit_cookies_manager import CookieManager
 
+# https://github.com/streamlit/streamlit/issues/861
+# https://github.com/streamlit/streamlit/issues/861#issuecomment-1916964977
+# https://github.com/streamlit/streamlit/issues/5105
+# https://pypi.org/project/streamlit-cookies-manager/
+# https://discuss.streamlit.io/t/cookies-support-in-streamlit/16144/52
 
 from src.common import (
     ASSETS_PATH,

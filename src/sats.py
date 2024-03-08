@@ -37,6 +37,18 @@ TOKENS_PER_SAT = 30
 # https://github.com/breez/breez-sdk-docs/blob/625456048837e87f62e9b6afd86a9438acc08b06/snippets/python/src/getting_started.py
 
 
+# ---
+# https://nwc.dev/#how-it-works
+# https://github.com/unclebob/more-speech
+# https://github.com/getAlby/bitcoin-connect
+# https://github.com/getAlby/nips/blob/7-wallet-connect-patch/47.md
+# https://pypi.org/project/walletconnect/
+# https://github.com/bitlogik/pyWalletConnect
+# https://github.com/gudnuf/cln_nwc
+# https://blog.mutinywallet.com/migrate-mutiny-wallet-to-the-native-apps/
+
+
+
 def charge_user(amount: int = None):
     if amount is None:
         amount = st.session_state.token_cost_accumulator
