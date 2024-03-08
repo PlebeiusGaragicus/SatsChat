@@ -340,20 +340,24 @@ def main():
 
 
     ### NEW / DELETE BUTTONS
-    with before_speech_placeholder:
-        if len(appstate.chat.messages) > 0:
-            col2 = st.columns((1, 1, 1))
-            col2[1].button("🌱 :green[New]", on_click=lambda: appstate.new_thread(), use_container_width=True)
-            col2[0].button("🗑️ :red[Delete]", on_click=delete_this_chat, key="button_delete", use_container_width=True)
+    # with before_speech_placeholder:
+    #     if len(appstate.chat.messages) > 0:
+    #         col2 = st.columns((1, 1, 1))
+    #         col2[1].button("🌱 :green[New]", on_click=lambda: appstate.new_thread(), use_container_width=True)
+    #         col2[0].button("🗑️ :red[Delete]", on_click=delete_this_chat, key="button_delete", use_container_width=True)
 
 
+    with construct_settings_placeholder.container(border=False):
+        st.write("## :orange[Configuration]")
+        get('construct').display_settings()
 
     # appstate.load_chat_history()
     
 
     ### TODO CONVERSATION HISTORY IS TURNED OFF FOR NOW
     with convo_history_placeholder.container():
-        pass
+        st.header("", divider="rainbow")
+        st.caption("no convo history")
     #     st.header("", divider="rainbow")
     #     # st.write("## :rainbow[Past Conversations]")
     #     st.write("## :orange[Past Conversations]")
@@ -372,9 +376,12 @@ def main():
     #     #     st.caption(f"Only showing last {appstate.chat_history_depth} conversations")
     #     #     st.button("Load more...", use_container_width=True, key="load_more_button", on_click=appstate.increase_chat_history_depth)
 
-    with add_sats_placeholder:
+    with add_sats_placeholder.container():
         st.header("", divider="rainbow")
         display_invoice_pane()
+    
+    # with add_sats_placeholder.container(border=True):
+    # with st.sidebar:
 
 
 
@@ -390,9 +397,9 @@ def main():
 
     # we don't use an expander becuase the construct settings may need to have one
     # with construct_settings_placeholder.expander("Construct settings", expanded=True):
-    with construct_settings_placeholder.container(border=False):
-        st.write("## :orange[Configuration]")
-        get('construct').display_settings()
+    # with construct_settings_placeholder.container(border=False):
+    #     st.write("## :orange[Configuration]")
+    #     get('construct').display_settings()
 
         # show_nuke_button()
     
