@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import streamlit as st
 
 from src.flows import StreamingLLM
-from src.persist import PREFERENCES_PATH
+# from src.persist import PREFERENCES_PATH
 from src.common import get
 
 

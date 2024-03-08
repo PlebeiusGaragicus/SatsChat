@@ -46,7 +46,7 @@ def charge_user(amount: int = None):
 
 
 def load_sats_balance():
-    return int(st.session_state.redis_conn.get(st.session_state.username) or 0)
+    return int(st.session_state.redis_conn.get(get("user_uuid")) or 0)
 
     
 
@@ -275,3 +275,11 @@ def generate_qr():
 
     caption = f":orange[{pr[0:14]} ... {pr[-14:]}]"
     st.write(caption)
+
+
+
+def show_tokens():
+    sats = load_sats_balance()
+    if sats is None:
+        sats = 0
+    st.write(f"⚡️ :green[{sats:,.0f}]")

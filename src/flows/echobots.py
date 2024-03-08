@@ -6,7 +6,7 @@ from pydantic import BaseModel
 import streamlit as st
 
 from src.flows import StreamingLLM
-from src.persist import PREFERENCES_PATH
+
 from src.common import get
 
 
@@ -53,12 +53,18 @@ class echobot(testing_echobot):
     def setup(self):
         self._is_setup = True
         # load settings from file
+        # try:
+        #     settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+        #     with open(settings_filename, "r") as f:
+        #         settings = json.loads(f.read())
+        #         self.settings = echobot_settings(**settings)
+        # except (FileNotFoundError, json.JSONDecodeError):
+        #     self.settings = echobot_settings()
+        
+        # try to load settings from saved cookie
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "r") as f:
-                settings = json.loads(f.read())
-                self.settings = echobot_settings(**settings)
-        except (FileNotFoundError, json.JSONDecodeError):
+            self.settings = echobot_settings(**get('echobot_settings'))
+        except:
             self.settings = echobot_settings()
 
 
@@ -75,9 +81,12 @@ class echobot(testing_echobot):
             self.settings.__dict__[key] = new_value
 
             # save to file
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "w") as f:
-                f.write(json.dumps(self.settings.model_dump()))
+            # settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            # with open(settings_filename, "w") as f:
+            #     f.write(json.dumps(self.settings.model_dump()))
+            # save to cookie
+            set('echobot_settings', self.settings.model_dump())
+            st.session_state.cookie_manager.save()
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
@@ -105,12 +114,17 @@ class dummybot(testing_echobot):
         self._is_setup = True
 
         # load settings from file
+        # try:
+        #     settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+        #     with open(settings_filename, "r") as f:
+        #         settings = json.loads(f.read())
+        #         self.settings = echobot_settings(**settings)
+        # except (FileNotFoundError, json.JSONDecodeError):
+        #     self.settings = echobot_settings()
+
         try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "r") as f:
-                settings = json.loads(f.read())
-                self.settings = echobot_settings(**settings)
-        except (FileNotFoundError, json.JSONDecodeError):
+            self.settings = echobot_settings(**get('dummybot_settings'))
+        except:
             self.settings = echobot_settings()
 
 
@@ -126,9 +140,12 @@ class dummybot(testing_echobot):
             self.settings.__dict__[key] = new_value
 
             # save to file
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "w") as f:
-                f.write(json.dumps(self.settings.model_dump()))
+            # settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+            # with open(settings_filename, "w") as f:
+            #     f.write(json.dumps(self.settings.model_dump()))
+            # save to cookie
+            set('dummybot_settings', self.settings.model_dump())
+            st.session_state.cookie_manager.save()
 
         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
@@ -138,50 +155,50 @@ class dummybot(testing_echobot):
 
 
 
-class tommybot(testing_echobot):
-    emoji = "💪🏼"
-    name = "tommybot"
+# class tommybot(testing_echobot):
+#     emoji = "💪🏼"
+#     name = "tommybot"
 
-    def __init__(self):
-        super().__init__()
-        # self.settings = echobot_settings() #NOTE: DO NOT DO THIS.. IT OVERWRITES THE SETTINGS TO DEFAULT
+#     def __init__(self):
+#         super().__init__()
+#         # self.settings = echobot_settings() #NOTE: DO NOT DO THIS.. IT OVERWRITES THE SETTINGS TO DEFAULT
 
-        self.preamble = "I can do this, but I can't do it alone!  Stay connected with your network!"
+#         self.preamble = "I can do this, but I can't do it alone!  Stay connected with your network!"
 
-    def setup(self):
-        self._is_setup = True
+#     def setup(self):
+#         self._is_setup = True
 
-        # load settings from file
-        try:
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "r") as f:
-                settings = json.loads(f.read())
-                self.settings = echobot_settings(**settings)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.settings = echobot_settings()
-
-
-    def run(self, prompt, **kwargs):
-        return self.just_echo("Hey, my name's Tommy! 💪", **kwargs)
+#         # load settings from file
+#         try:
+#             settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+#             with open(settings_filename, "r") as f:
+#                 settings = json.loads(f.read())
+#                 self.settings = echobot_settings(**settings)
+#         except (FileNotFoundError, json.JSONDecodeError):
+#             self.settings = echobot_settings()
 
 
-    def display_settings(self):
-        def update(key):
-            new_value = st.session_state[key]
-            # if key == 'caboose':
-            #     new_value = new_value[:1]
-            self.settings.__dict__[key] = new_value
+#     def run(self, prompt, **kwargs):
+#         return self.just_echo("Hey, my name's Tommy! 💪", **kwargs)
+
+
+#     def display_settings(self):
+#         def update(key):
+#             new_value = st.session_state[key]
+#             # if key == 'caboose':
+#             #     new_value = new_value[:1]
+#             self.settings.__dict__[key] = new_value
             
-            # save to file
-            settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
-            with open(settings_filename, "w") as f:
-                f.write(json.dumps(self.settings.model_dump()))
+#             # save to file
+#             settings_filename = PREFERENCES_PATH / f"{get('username')}_botsettings_{self.name}.json"
+#             with open(settings_filename, "w") as f:
+#                 f.write(json.dumps(self.settings.model_dump()))
 
 
-        st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
-        st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
-        st.slider("Sleep time", min_value=0.05, max_value=1.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
-        # st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
+#         st.toggle("Uppercase", key="uppercase", value=self.settings.uppercase, on_change=update, args=("uppercase",))
+#         st.toggle("Reverse", key="reverse", value=self.settings.reverse, on_change=update, args=("reverse",))
+#         st.slider("Sleep time", min_value=0.05, max_value=1.0, key="sleep_time", value=self.settings.sleep_time, on_change=update, args=("sleep_time",))
+#         # st.text_input("Caboose", key="caboose", value=self.settings.caboose, on_change=update, args=("caboose",))
 
 """
 

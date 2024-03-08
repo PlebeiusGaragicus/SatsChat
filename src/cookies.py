@@ -2,9 +2,7 @@ import os
 import uuid
 
 import streamlit as st
-# import extra_streamlit_components as stx
 from streamlit_cookies_manager import CookieManager
-
 
 
 from src.common import (
@@ -16,6 +14,67 @@ from src.common import (
     cprint,
     Colors,
 )
+
+
+def get_cookie(c):
+    return st.session_state.cookie_manager.get(c)
+
+
+def set_cookie(c, v):
+    st.session_state.cookie_manager[c] = v
+    st.session_state.cookie_manager.save()
+    # TODO cprint debug here
+
+
+# TODO - hmmm... not sure I need this as it's protected by the `not_init` check
+# @st.cache_resource(experimental_allow_widgets=True)
+def get_cookie_manager():
+    return CookieManager()
+
+
+def load_cookies():
+    if not_init("cookies"):
+        st.session_state.cookie_manager = get_cookie_manager()
+
+        if not st.session_state.cookie_manager.ready():
+            st.stop()
+
+
+def load_ui_persistance():
+    if not_init("chosen_pill"):
+        pill = get_cookie("chosen_pill")
+        if pill is None:
+            set("chosen_pill", "0")
+            set_cookie("chosen_pill", 0)
+            cprint(f"chosen_pill: 0", Colors.RED)
+
+    # TODO - load other UI persistance here
+
+
+
+def save_ui_persistance(ui_name, value):
+    set(ui_name, value)
+    set_cookie(ui_name, value)
+    cprint(f"ui_name: {value}", Colors.RED)
+
+
+
+def duke_nuke_em():
+    """ Delete all cookies """
+
+    for cookie, value in st.session_state.cookie_manager.items():
+        del st.session_state.cookie_manager[cookie]
+        st.session_state.cookie_manager.save()
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -87,36 +146,3 @@ from src.common import (
 # def set_cookie(key, value):
 #     cookie_manager = get_cookie_manager()
 #     cookie_manager.set(key, value)
-
-
-
-def get_cookie(c):
-    return st.session_state.cookie_manager.get(c)
-
-
-def set_cookie(c, v):
-    st.session_state.cookie_manager[c] = v
-    st.session_state.cookie_manager.save()
-    # TODO cprint debug here
-
-
-def load_cookies():
-    if not_init("cookies"):
-        st.session_state.cookie_manager = CookieManager() #TODO make @cache_resource
-
-        if not st.session_state.cookie_manager.ready():
-            st.stop()
-
-    for cookie, value in st.session_state.cookie_manager.items():
-        st.write(f"`{cookie}`: {value}")
-
-
-def load_ui_persistance():
-    if not_init("chosen_pill"):
-        pill = get_cookie("chosen_pill")
-        if pill is None:
-            set("chosen_pill", "0")
-            set_cookie("chosen_pill", 0)
-            cprint(f"chosen_pill: 0", Colors.RED)
-
-    # TODO - load other UI persistance here
